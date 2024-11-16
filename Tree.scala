@@ -1,15 +1,17 @@
 sealed trait Tree[+A] {
     // méthode de réprentation de l'arbre 
-      def toBranchString(indent: String = ""): String = this match {
-        case Leaf => indent + "└── Leaf\n"
+      def toTreeString(prefix: String = "", isTail: Boolean = true, branchType: String = ""): String = this match {
+        case Leaf => prefix + (if (isTail) "└── " else "├── ") + s"Leaf $branchType\n"
         case Node(value, char, left, next, right) =>
-            val valueStr = value.map(v => s"(${v})").getOrElse("")
-            val currentNode = s"$indent└── $char$valueStr\n"
-            val leftStr = left.toBranchString(indent + "   ")
-            val nextStr = next.toBranchString(indent + "   ")
-            val rightStr = right.toBranchString(indent + "   ")
-            currentNode + leftStr + nextStr + rightStr
-    }
+        val valueStr = value.map(v => s"(${v})").getOrElse("")
+        val currentNode = prefix + (if (isTail) "└── " else "├── ") + s"$char$valueStr $branchType\n"
+
+        val leftStr = left.toTreeString(prefix + (if (isTail) "    " else "│   "), next == Leaf && right == Leaf, "[L]")
+        val nextStr = next.toTreeString(prefix + (if (isTail) "    " else "│   "), right == Leaf, "[N]")
+        val rightStr = right.toTreeString(prefix + (if (isTail) "    " else "│   "), isTail, "[R]")
+
+        currentNode + leftStr + nextStr + rightStr
+}
     // Utiliser Tree.insert directement
     def insert[B >: A](key: String, value: B): Tree[B] = Tree.insert(this, key, value, 0)
 }
@@ -48,6 +50,6 @@ object TestTree {
             .insert("chat", true)
             .insert("coq", true)
             .insert("pie", true)
-        println(tree.toBranchString())
+        println(tree.toTreeString())
     }
 }
