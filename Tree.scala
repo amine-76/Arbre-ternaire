@@ -14,6 +14,18 @@ sealed trait Tree[+A] {
 }
     // Utiliser Tree.insert directement
     def insert[B >: A](key: String, value: B): Tree[B] = Tree.insert(this, key, value, 0)
+
+    // Méthode size()
+    def size() : Int = this match {
+        case Leaf => 0
+        case node: Node[A] if (node.value == true) => 1
+        case node: Node[A] if (node.char < key.charAt(n)) =>
+            node.copy(right = insert(node.right, key, value, n))
+        case node: Node[A] if (n < key.length - 1) =>
+            node.copy(next = insert(node.next, key, value, n + 1))
+        case node: Node[A] =>
+            node.copy(value = Some(value))                                     
+    }
 }
 
 case object Leaf extends Tree[Nothing]
@@ -31,7 +43,9 @@ object Tree {
     def apply[A](): Tree[A] = Leaf
 
     def insert[A](root: Tree[A], key: String, value: A, n: Int): Tree[A] = root match {
+
         case Leaf => insert(Node(None, key.charAt(n), Leaf, Leaf, Leaf), key, value, n)
+
         case node: Node[A] if (node.char > key.charAt(n)) =>
             node.copy(left = insert(node.left, key, value, n))
         case node: Node[A] if (node.char < key.charAt(n)) =>
@@ -41,6 +55,7 @@ object Tree {
         case node: Node[A] =>
             node.copy(value = Some(value))
     }
+    def insert2(root : Tree[Boolean], key : String): Tree[Boolean] = insert(root, key, true , 0)
 }
 
 object TestTree {
@@ -50,6 +65,12 @@ object TestTree {
             .insert("chat", true)
             .insert("coq", true)
             .insert("pie", true)
-        println(tree.toTreeString())
+            
+        //println(tree.toTreeString())
+        val test = Tree[Boolean]()
+        val update = Tree.insert2(tree,"amine")
+        val up2 = Tree.insert2(update, "toto")
+        println(up2.toTreeString())
+        println(up2.size(this,0,0))//affiche 6 
     }
 }
