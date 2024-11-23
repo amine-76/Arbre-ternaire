@@ -18,13 +18,9 @@ sealed trait Tree[+A] {
     // Méthode size()
     def size() : Int = this match {
         case Leaf => 0
-        case node: Node[A] if (node.value == true) => 1
-        case node: Node[A] if (node.char < key.charAt(n)) =>
-            node.copy(right = insert(node.right, key, value, n))
-        case node: Node[A] if (n < key.length - 1) =>
-            node.copy(next = insert(node.next, key, value, n + 1))
-        case node: Node[A] =>
-            node.copy(value = Some(value))                                     
+        case Node(value,_,left,next,right) => 
+            val currentNodeSize = if(value.isDefined) 1 else 0 
+            currentNodeSize + left.size() + next.size + right.size()                                
     }
 }
 
@@ -56,6 +52,7 @@ object Tree {
             node.copy(value = Some(value))
     }
     def insert2(root : Tree[Boolean], key : String): Tree[Boolean] = insert(root, key, true , 0)
+    
 }
 
 object TestTree {
@@ -71,6 +68,9 @@ object TestTree {
         val update = Tree.insert2(tree,"amine")
         val up2 = Tree.insert2(update, "toto")
         println(up2.toTreeString())
-        println(up2.size(this,0,0))//affiche 6 
+
+        // Test de la méthode size()
+        val n = tree.size()
+        println("Size : "+n) // affiche 4 ppur l'arbre de base 
     }
 }
