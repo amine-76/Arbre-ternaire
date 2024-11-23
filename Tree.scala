@@ -28,6 +28,21 @@ sealed trait Tree[+A] {
             val currentValue = value.toList
             currentValue ++ left.toList ++ next.toList ++ right.toList     
     }
+    def get(key: String, n: Int = 0): Option[A] = this match {
+        case Leaf => None // Si on atteint une feuille, la clé n'existe pas.
+        case Node(value, char, left, next, right) =>
+            if (key.charAt(n) < char) {
+            left.get(key, n) // La lettre est avant le caractère courant, on cherche à gauche.
+            } else if (key.charAt(n) > char) {
+            right.get(key, n) // La lettre est après, on cherche à droite.
+            } else if (n == key.length - 1) {
+            value // La clé est complètement parcourue, on retourne la valeur.
+            } else {
+            next.get(key, n + 1) // La lettre correspond, on passe au caractère suivant via `next`.
+            }
+    }
+
+
 }
 
 case object Leaf extends Tree[Nothing]
@@ -78,8 +93,16 @@ object TestTree {
         // Test de la méthode size()
         val n = tree.size()
         println("Size : "+n) // affiche 4 ppur l'arbre de base 
+        
         // Test Méthode toList
         val list = tree.toList()
         println("List : "+list)
+
+        // Test méthode get() : 
+        println(tree.get("chien")) // Résultat attendu : Some(true)
+        println(tree.get("chat"))  // Résultat attendu : Some(true)
+        println(tree.get("chaton")) // Résultat attendu : None (non inséré)
+        println(tree.get("pie"))  // Résultat attendu : Some(true)
+        println(tree.get("ami"))  // Résultat attendu : None (non inséré)
     }
 }
