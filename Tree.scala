@@ -22,6 +22,12 @@ sealed trait Tree[+A] {
             val currentNodeSize = if(value.isDefined) 1 else 0 
             currentNodeSize + left.size() + next.size + right.size()                                
     }
+    def toList() : List[A] = this match {
+        case Leaf => Nil  
+        case Node(value,_,left,next,right) => 
+            val currentValue = value.toList
+            currentValue ++ left.toList ++ next.toList ++ right.toList     
+    }
 }
 
 case object Leaf extends Tree[Nothing]
@@ -66,11 +72,14 @@ object TestTree {
         //println(tree.toTreeString())
         val test = Tree[Boolean]()
         val update = Tree.insert2(tree,"amine")
-        val up2 = Tree.insert2(update, "toto")
+        val up2 = Tree.insert2(update, "kifech")
         println(up2.toTreeString())
 
         // Test de la méthode size()
         val n = tree.size()
         println("Size : "+n) // affiche 4 ppur l'arbre de base 
+        // Test Méthode toList
+        val list = tree.toList()
+        println("List : "+list)
     }
 }
