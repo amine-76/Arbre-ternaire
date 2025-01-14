@@ -11,7 +11,7 @@ sealed trait Tree[+A] {
         val rightStr = right.toTreeString(prefix + (if (isTail) "    " else "│   "), isTail, "[R]")
 
         currentNode + leftStr + nextStr + rightStr
-}
+    }
     // Utiliser Tree.insert directement
     def insert[B >: A](key: String, value: B): Tree[B] = Tree.insert(this, key, value, 0)
 
@@ -22,12 +22,14 @@ sealed trait Tree[+A] {
             val currentNodeSize = if(value.isDefined) 1 else 0 
             currentNodeSize + left.size() + next.size + right.size()                                
     }
+    
     def toList() : List[A] = this match {
         case Leaf => Nil  
         case Node(value,_,left,next,right) => 
             val currentValue = value.toList
             currentValue ++ left.toList ++ next.toList ++ right.toList     
     }
+    
     def get(key: String, n: Int = 0): Option[A] = this match {
         case Leaf => None // Si on atteint une feuille, la clé n'existe pas.
         case Node(value, char, left, next, right) =>
@@ -36,11 +38,64 @@ sealed trait Tree[+A] {
             } else if (key.charAt(n) > char) {
             right.get(key, n) // La lettre est après, on cherche à droite.
             } else if (n == key.length - 1) {
-            value // La clé est complètement parcourue, on retourne la valeur.
+                value // La clé est complètement parcourue, on retourne la valeur.
             } else {
             next.get(key, n + 1) // La lettre correspond, on passe au caractère suivant via `next`.
             }
     }
+
+    def contains(key : String, n : Int = 0) : Boolean = this match {
+        case Leaf => false
+        case Node(value, char, left, next, right) =>
+            if (key.charAt(n) < char) {
+                 left.contains(key, n) // La lettre est avant le caractère courant, on cherche à gauche.
+            } else if (key.charAt(n) > char) {
+                        right.contains(key, n) // La lettre est après, on cherche à droite.
+            } else if (n == key.length - 1) {
+                value.isDefined // La clé est complètement parcourue, on retourne la valeur.
+            } else {
+                next.contains(key, n + 1) // La lettre correspond, on passe au caractère suivant via `next`.
+            }
+    }
+    def toKeyValueList(prefix : String = "") : List[(String,A)] = this match {
+        case Leaf => Nil
+        case Node(value, char, left, next, right) =>
+          val currentKey = prefix + char
+
+          val currentValue = value match {
+            case Some(value) => List((currentKey,value))
+            case None => Nil
+          }  
+            currentValue ++
+            left.toKeyValueList(prefix) ++ 
+            next.toKeyValueList(currentKey) ++ 
+            right.toKeyValueList(prefix)   
+    }
+       
+    def remove(key: String, n: Int = 0): Tree[A] = this match {
+    case Leaf => Leaf // Si l'arbre est vide, rien à supprimer.
+
+    case Node(value, char, left, next, right) =>
+        if (key.charAt(n) < char) {
+        // Mise à jour manuelle du sous-arbre gauche.
+        Node(value, char, left.remove(key, n), next, right)
+        } else if (key.charAt(n) > char) {
+        // Mise à jour manuelle du sous-arbre droit.
+        Node(value, char, left, next, right.remove(key, n))
+        } else if (n == key.length - 1) {
+        // Suppression de la valeur si la clé est trouvée.
+        if (left == Leaf && next == Leaf && right == Leaf) {
+            Leaf // Si toutes les branches sont mortes, on retourne une feuille.
+        } else {
+            // Sinon, recrée un nœud avec la valeur supprimée.
+            Node(None, char, left, next, right)
+        }
+        } else {
+        // Mise à jour manuelle du sous-arbre suivant.
+        Node(value, char, left, next.remove(key, n + 1), right)
+        }
+    }
+
 
 
 }
@@ -74,6 +129,7 @@ object Tree {
     }
     def insert2(root : Tree[Boolean], key : String): Tree[Boolean] = insert(root, key, true , 0)
     
+    
 }
 
 object TestTree {
@@ -104,5 +160,23 @@ object TestTree {
         println(tree.get("chaton")) // Résultat attendu : None (non inséré)
         println(tree.get("pie"))  // Résultat attendu : Some(true)
         println(tree.get("ami"))  // Résultat attendu : None (non inséré)
+        
+        // test méthode contains() : 
+        println("contains chien ? "+tree.contains("chien")); 
+        println("contains chat ? "+tree.contains("chat")); 
+        println("contains chaton ? "+tree.contains("chaton")); 
+        println("contains pie ? "+tree.contains("pie")); 
+        println("contains ami ? "+tree.contains("ami")); 
+        
+        // test méthode toKeyValueList() 
+        println("List de tuple (key,value) "+tree.toKeyValueList());
+
+        // test méthode remove()
+        val tree_remove1 =  tree.remove("chien")
+        val tree_remove2 =  tree_remove1.remove("coq")
+        val tree_remove3 =  tree_remove2.remove("pie")
+
+        println("Après suppression de toutes les clés :")
+        println(tree_remove3.toKeyValueList())
     }
 }
